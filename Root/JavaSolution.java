@@ -41,7 +41,17 @@ public class JavaSolution {
 
         List<Integer> testBrute = bruteForce(text2, pattern2);
 
-        for(int index : testBrute) System.out.println(index);
+        // for(int index : testBrute) System.out.println(index);
+
+        // O(N+M), case sensitive
+        // builds LPS array to avoid re-calculations in pattern
+        // that can be avoided by doing a pre-processing step of calculating
+        // longest proper prefix suffix array, which aims to know
+        // at each index how much of the characters we can assume are visited
+        // excluding the last visited one from the pattern itself
+        
+        List<Integer> testKMP = KMP(text2, pattern2);
+        for(int index : testKMP) System.out.println(index);
     }
 
     private static List<Integer> bruteForce(String text, String pattern){
@@ -66,5 +76,65 @@ public class JavaSolution {
         }
 
         return result;
+    }
+
+    public static List<Integer> KMP(String text, String pattern){
+        if(text.length() == 0) return null;
+        List<Integer> result = new ArrayList();
+
+        if(pattern.length() == 0){
+            result.add(0);
+            return result;
+        }
+
+        int[] lps = buildLPS(pattern);
+
+
+        int n = text.length(), m = pattern.length();
+
+        int i = 0, j = 0;
+
+        while(i < n){
+            if(text.charAt(i) == pattern.charAt(j)){
+                i++;
+                j++;
+            }
+
+            if(j == m){
+                result.add(i - j);
+                j = lps[j-1];
+            }else if(i < n && text.charAt(i) != pattern.charAt(j)){
+                if(j != 0){
+                    j = lps[j-1];
+                }else{
+                    i++;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private static int[] buildLPS(String pattern){
+        int m = pattern.length();
+        int[] lps = new int[m];
+
+        int len = 0, i = 1;
+        // first index of lps is always 0, not enough chars to be considered lps
+        while(i < m){
+            if(pattern.charAt(i) == pattern.charAt(len)){
+                len++;
+                lps[i] = len;
+                i++;
+            }else{
+                if(len > 0){
+                    len = lps[len-1];
+                }else{
+                    i++;
+                }
+            }
+        }
+
+        return lps;
     }
 }
